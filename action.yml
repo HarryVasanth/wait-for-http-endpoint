@@ -1,4 +1,4 @@
-name: "Wait for HTTP(S) Endpoint"
+name: "Wait for HTTP Endpoint"
 description: "Polls an HTTP(S) endpoint until it returns the expected status code or timeout is exceeded"
 branding:
   icon: activity

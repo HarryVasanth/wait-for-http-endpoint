@@ -1,0 +1,30 @@
+name: "Wait for HTTP(S) Endpoint"
+description: "Polls an HTTP(S) endpoint until it returns the expected status code or timeout is exceeded"
+branding:
+  icon: activity
+  color: blue
+
+inputs:
+  url:
+    description: "URL to poll (http/https)"
+    required: true
+  method:
+    description: "HTTP method to use"
+    required: false
+    default: "GET"
+  expected-status:
+    description: "Expected HTTP status code(s) (comma-separated)"
+    required: false
+    default: "200"
+  timeout:
+    description: "Timeout in milliseconds"
+    required: false
+    default: "60000"
+  interval:
+    description: "Polling interval in milliseconds"
+    required: false
+    default: "1000"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"

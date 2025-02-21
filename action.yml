@@ -24,6 +24,17 @@ inputs:
     description: "Polling interval in milliseconds"
     required: false
     default: "1000"
+  insecure:
+    description: "Skip TLS certificate verification (allow self-signed certs)"
+    required: false
+    default: "false"
+  follow-redirects:
+    description: "Follow HTTP redirects"
+    required: false
+    default: "false"
+  bearer-token:
+    description: "Optional Bearer token for the Authorization header"
+    required: false
 
 runs:
   using: "docker"

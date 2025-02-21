@@ -1,6 +1,8 @@
-# Ignore misc
+# Ignore markdown and configuration files
 *.md
 *.yml
+.editorconfig
+.prettierrc
 
 # Ignore Docker file
 Dockerfile

@@ -1,4 +1,4 @@
-# 🔗 Wait for HTTP Endpoint Action
+# ⏳ Wait for HTTP Endpoint Action
 
 Poll an HTTP(S) endpoint until it returns an expected status, or stop at a deadline.
 
@@ -20,7 +20,7 @@ works on GitHub-hosted and self-hosted runners.
 
 | Input | Description | Required | Default |
 | --- | --- | --- | --- |
-| `url` | 🔗 URL to poll (`http` or `https`) | Yes | none |
+| `url` | ⏳ URL to poll (`http` or `https`) | Yes | none |
 | `method` | 🛠️ HTTP method | No | `GET` |
 | `expected-status` | 🎯 Expected code(s): `200`, `200,201`, `2xx` | No | `200` |
 | `timeout` | ⏱️ Maximum polling time in milliseconds | No | `60000` |
@@ -62,7 +62,7 @@ Codes must be three digits and start with `1` to `5`. Classes are `1xx` through
 
 ## 🛠️ Usage
 
-### 🔗 Basic health check
+### ⏳ Basic health check
 
 ```yaml
 - name: Wait for the API

@@ -358,7 +358,7 @@ emit_summary() { # <result> <status> <error>
 		return 0
 	fi
 	{
-		echo "### 🔗 Wait for HTTP Endpoint"
+		echo "### ⏳ Wait for HTTP Endpoint"
 		echo
 		echo "| Field | Value |"
 		echo "| --- | --- |"
@@ -382,7 +382,7 @@ emit_summary() { # <result> <status> <error>
 
 # --- 🎯 Banner --------------------------------------------------------------
 
-echo "🔗 Wait for HTTP Endpoint"
+echo "⏳ Wait for HTTP Endpoint"
 printf '🌐 URL: %s\n' "$SAFE_URL"
 printf '🎯 Expecting HTTP %s · method %s\n' "$EXPECTED_DISPLAY" "$METHOD"
 printf '⏱️  Timeout %sms · interval %sms\n' "$TIMEOUT_MS" "$INTERVAL_MS"

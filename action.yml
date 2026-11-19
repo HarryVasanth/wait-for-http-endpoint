@@ -8,7 +8,7 @@ branding:
 
 inputs:
   url:
-    description: "🔗 URL to poll (http or https)"
+    description: "⏳ URL to poll (http or https)"
     required: true
   method:
     description: "🛠️ HTTP method to use"
@@ -86,7 +86,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: "🔗 Wait for the endpoint"
+    - name: "⏳ Wait for the endpoint"
       id: wait
       shell: bash
       # Cygpath makes the script path valid in Git Bash on Windows.

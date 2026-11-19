@@ -1,41 +1,115 @@
 name: "Wait for HTTP Endpoint"
-description: "Polls an HTTP(S) endpoint until it returns the expected status code or timeout is exceeded"
+description: "Poll an HTTP(S) endpoint until it returns an expected status. No Docker. No Node."
+author: "HarryVasanth"
+
 branding:
-  icon: activity
-  color: blue
+  icon: "activity"
+  color: "blue"
 
 inputs:
   url:
-    description: "URL to poll (http/https)"
+    description: "🔗 URL to poll (http or https)"
     required: true
   method:
-    description: "HTTP method to use"
+    description: "🛠️ HTTP method to use"
     required: false
     default: "GET"
   expected-status:
-    description: "Expected HTTP status code(s) (comma-separated)"
+    description: "🎯 Expected status code(s). Comma-separated 3-digit codes or classes like 2xx"
     required: false
     default: "200"
   timeout:
-    description: "Timeout in milliseconds"
+    description: "⏱️ Maximum polling time in milliseconds"
     required: false
     default: "60000"
   interval:
-    description: "Polling interval in milliseconds"
+    description: "🔄 Time between polls in milliseconds"
     required: false
     default: "1000"
   insecure:
-    description: "Skip TLS certificate verification (allow self-signed certs)"
+    description: "🔓 Skip TLS certificate verification (true/false)"
     required: false
     default: "false"
   follow-redirects:
-    description: "Follow HTTP redirects"
+    description: "↪️ Follow HTTP redirects (true/false)"
     required: false
     default: "false"
-  bearer-token:
-    description: "Optional Bearer token for the Authorization header"
+  max-redirects:
+    description: "↪️ Maximum redirects to follow"
     required: false
+    default: "10"
+  bearer-token:
+    description: "🔑 Optional Bearer token for the Authorization header"
+    required: false
+  headers:
+    description: "🧾 Extra request headers, one 'Name: value' per line"
+    required: false
+  content-type:
+    description: "📦 Content-Type for the request body"
+    required: false
+  body:
+    description: "📦 Request body to send with every poll"
+    required: false
+  expected-body:
+    description: "📄 POSIX extended regex that the response body must match"
+    required: false
+  user-agent:
+    description: "🪪 User-Agent header"
+    required: false
+    default: "wait-for-http-endpoint"
+  print-body:
+    description: "📄 Print the last response body, capped at 2000 bytes (true/false)"
+    required: false
+    default: "false"
+  continue-on-error:
+    description: "⏭️ Do not fail the step when the endpoint does not become ready (true/false)"
+    required: false
+    default: "false"
+
+outputs:
+  result:
+    description: "📊 Outcome: success or failure"
+    value: ${{ steps.wait.outputs.result }}
+  status:
+    description: "🚦 Last HTTP status code (000 when the request failed)"
+    value: ${{ steps.wait.outputs.status }}
+  attempts:
+    description: "🔢 Number of requests made"
+    value: ${{ steps.wait.outputs.attempts }}
+  duration_ms:
+    description: "⏱️ Total time spent polling in milliseconds"
+    value: ${{ steps.wait.outputs.duration_ms }}
+  error:
+    description: "❌ Failure reason, empty on success"
+    value: ${{ steps.wait.outputs.error }}
 
 runs:
-  using: "docker"
-  image: "Dockerfile"
+  using: "composite"
+  steps:
+    - name: "🔗 Wait for the endpoint"
+      id: wait
+      shell: bash
+      # Cygpath makes the script path valid in Git Bash on Windows.
+      run: |
+        action_path="${{ github.action_path }}"
+        if command -v cygpath >/dev/null 2>&1; then
+          action_path=$(cygpath -u "$action_path")
+        fi
+        bash "$action_path/wait-for-http-endpoint.sh"
+      env:
+        INPUT_URL: ${{ inputs.url }}
+        INPUT_METHOD: ${{ inputs.method }}
+        INPUT_EXPECTED_STATUS: ${{ inputs['expected-status'] }}
+        INPUT_TIMEOUT: ${{ inputs.timeout }}
+        INPUT_INTERVAL: ${{ inputs.interval }}
+        INPUT_INSECURE: ${{ inputs.insecure }}
+        INPUT_FOLLOW_REDIRECTS: ${{ inputs['follow-redirects'] }}
+        INPUT_MAX_REDIRECTS: ${{ inputs['max-redirects'] }}
+        INPUT_BEARER_TOKEN: ${{ inputs['bearer-token'] }}
+        INPUT_HEADERS: ${{ inputs.headers }}
+        INPUT_CONTENT_TYPE: ${{ inputs['content-type'] }}
+        INPUT_BODY: ${{ inputs.body }}
+        INPUT_EXPECTED_BODY: ${{ inputs['expected-body'] }}
+        INPUT_USER_AGENT: ${{ inputs['user-agent'] }}
+        INPUT_PRINT_BODY: ${{ inputs['print-body'] }}
+        INPUT_CONTINUE_ON_ERROR: ${{ inputs['continue-on-error'] }}

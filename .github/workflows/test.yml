@@ -1,0 +1,132 @@
+name: "🧪 Tests"
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: "🧪 Unit · ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: "🐧 Check out repository code"
+        uses: actions/checkout@v7.0.1
+
+      - name: "🔍 ShellCheck"
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck wait-for-http-endpoint.sh wait-for-http-endpoint.test.sh
+
+      - name: "✅ Run self-check"
+        run: bash ./wait-for-http-endpoint.test.sh
+
+  action:
+    name: "🎯 Action · ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: "🐧 Check out repository code"
+        uses: actions/checkout@v7.0.1
+
+      - name: "🖥️ Start test server"
+        shell: bash
+        run: |
+          PY=python3
+          command -v python3 >/dev/null 2>&1 || PY=python
+          "$PY" -m http.server 8765 --bind 127.0.0.1 >"$RUNNER_TEMP/server.log" 2>&1 &
+          echo $! >"$RUNNER_TEMP/server.pid"
+          for i in $(seq 1 50); do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null 2>&1; then break; fi
+            sleep 0.1
+          done
+          if ! curl -fsS http://127.0.0.1:8765/ >/dev/null 2>&1; then
+            cat "$RUNNER_TEMP/server.log"
+            exit 1
+          fi
+
+      - name: "✅ Wait for endpoint"
+        id: wait
+        uses: ./
+        with:
+          url: http://127.0.0.1:8765/
+          timeout: 5000
+          interval: 100
+
+      - name: "🧪 Check success outputs"
+        shell: bash
+        run: |
+          test "${{ steps.wait.outputs.result }}" = "success"
+          test "${{ steps.wait.outputs.status }}" = "200"
+          test "${{ steps.wait.outputs.attempts }}" -ge 1
+          test "${{ steps.wait.outputs.error }}" = ""
+
+      - name: "🪪 HEAD request"
+        id: head
+        uses: ./
+        with:
+          url: http://127.0.0.1:8765/
+          method: HEAD
+          timeout: 5000
+          interval: 100
+
+      - name: "🧪 Check HEAD output"
+        shell: bash
+        run: |
+          test "${{ steps.head.outputs.result }}" = "success"
+          test "${{ steps.head.outputs.status }}" = "200"
+
+      - name: "⏰ Timeout"
+        id: timeout
+        continue-on-error: true
+        uses: ./
+        with:
+          url: http://127.0.0.1:8765/
+          expected-status: 418
+          timeout: 600
+          interval: 100
+
+      - name: "🧪 Check timeout outputs"
+        shell: bash
+        run: |
+          test "${{ steps.timeout.outcome }}" = "failure"
+          test "${{ steps.timeout.outputs.result }}" = "failure"
+          test "${{ steps.timeout.outputs.status }}" = "200"
+          test "${{ steps.timeout.outputs.attempts }}" -ge 1
+
+      - name: "⏭️ Continue on error"
+        id: soft
+        uses: ./
+        with:
+          url: http://127.0.0.1:8765/
+          expected-status: 418
+          timeout: 600
+          interval: 100
+          continue-on-error: "true"
+
+      - name: "🧪 Check continue on error"
+        shell: bash
+        run: |
+          test "${{ steps.soft.outcome }}" = "success"
+          test "${{ steps.soft.outputs.result }}" = "failure"
+
+      - name: "🧹 Stop test server"
+        if: always()
+        shell: bash
+        run: kill "$(cat "$RUNNER_TEMP/server.pid")" 2>/dev/null || true
